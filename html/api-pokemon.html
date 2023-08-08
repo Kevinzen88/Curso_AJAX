@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="shortcut icon" href="/asset/pokebola.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PokeDex</title>
+    <style>
+      html {
+        text-align: center;
+        background-image: url(/asset/fondo.png);
+      }
+      figure {
+        width: 120px;
+        height: 185px;
+        padding:1rem;
+        background: #222222;
+        border:  2px solid #d69d02;
+        border-radius: 10px;
+        margin: 10px ;
+        color: #ffffff;
+        font-family: "Monospace", sans-serif;
+        font-size: 1.2em;
+      }    
+      a{
+        color: #d69d02;
+        font-size: 12px;
+      }
+      .flecha{
+        margin: 1px;
+        font-size: 25px;
+        text-decoration:none;
+      }
+      .fuente{
+        width: 30%;
+        height: auto;
+      }
+      .fondo{
+        background-color: rgba(56, 56, 56, 0.913);
+        border:  2px solid #d69d02;
+        border-radius: 10%;
+      }
+      .fondo_Uno{
+        font-size: 10px;
+        align-items:self-start;
+        margin: 10px;
+        text-align: left;
+      }
+      .loader {
+        display: block;
+        margin: auto;
+      }
+      .grid-fluid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <h1><a href="https://fontmeme.com/es/fuente-pokemon/"><img class="fuente" src="https://fontmeme.com/permalink/230406/13fee49d046a752cf714d831d9ace521.png" alt="fuente-pokemon" border="0"></a></h1>
+    <nav class="links"></nav>
+    <main class="grid-fluid"></main>
+    <script>
+      const d = document,
+        $main = d.querySelector("main"),
+        $links = d.querySelector(".links");
+
+      let pokeApi = "https://pokeapi.co/api/v2/pokemon/";
+
+      async function cargaPoke(url) {
+        try {
+          $main.innerHTML = `<img class="loader" src="../asset/pokemon.svg" alt="cargando...">`;
+
+          let res = await fetch(url),
+            json = await res.json(),
+            $template = "",
+            $prevLink,
+            $nextLink;
+
+          console.log(json);
+
+          if (!res.ok) throw { status: res.status, statusText: res.statusText };
+
+          for (let i = 0; i < json.results.length; i++) {
+           
+            
+            try {
+              let res = await fetch(json.results[i].url),
+                pokemon = await res.json();
+                
+              if (!res.ok)
+                throw { status: res.status, statusText: res.statusText };
+
+              $template += `
+                         <figure>
+                            <div class="fondo">
+                                <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}"
+                                <figcaption>${pokemon.name}</figcaption>
+
+                                
+                            </div>
+                            <div class="fondo_Uno">
+                                <figcaption>
+                                    <a>Experiencia:</a> ${pokemon.base_experience}
+                                </figcaption>
+                                <figcaption>
+                                   <a>Especie:</a> ${pokemon.species.name}
+                                </figcaption>
+                                <figcaption>
+                                   <a>Habilidades:</a> ${pokemon.abilities.length}
+                                </figcaption>
+                                <figcaption>
+                                   <a>Tipo:</a> ${pokemon.types.length}
+                                </figcaption>
+                            </div>
+                            
+                         </figure>
+                        `;
+            } catch (error) {
+              let mesage = err.statusText || "Pokémon no encontrado";
+              $template += `
+                            <figure>
+                                <figcaption>${error.status}: ${mesage}</figcaption>
+                            </figure>
+                            
+                        `;
+            }
+          }
+          $main.innerHTML = $template;
+          $prevLink = json.previous ? `<a class="flecha" href="${json.previous}">👈</a>` : "";
+          $nextLink = json.next ? `<a class="flecha" href="${json.next}">👉</a>` : "";
+          $links.innerHTML = $prevLink + "" + $nextLink;
+        } catch (err) {
+          let mesage = err.statusText || "Pokémon no encontrado";
+          $main.innerHTML = `Error ${err.status}: ${mesage}`;
+        }
+      }
+
+      d.addEventListener("DOMContentLoaded", (e) => cargaPoke(pokeApi));
+      d.addEventListener("click", (e) => {
+        if (e.target.matches(".links a")) {
+          e.preventDefault();
+          cargaPoke(e.target.getAttribute("href"));
+        }
+      });
+    </script>
+  </body>
+</html>

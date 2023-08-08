@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog con Markdown</title>
+    <style>
+        body {
+            align-items: center;
+            text-align: center;
+        }
+        h1{
+            color: aquamarine;
+        }
+        h2{
+            color: blueviolet;
+        }
+    </style>
+</head>
+<body>
+    <h1>Blog con Markdown</h1>
+    <main></main>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
+    <script>
+        const d = document, $main = d.querySelector("main");
+
+        fetch("/asset/javascript.md")
+         .then(res => res.ok ? res.text(): Promise.reject(res))
+         .then(text => {
+            console.log(text);
+            $main.innerHTML = new showdown.Converter().makeHtml(text);
+         })
+         .catch(err => {
+             let mesage = err.statusText || "Programas no Encontrados";
+             $main.innerHTML = `<P>${err.status}: ${mesage}</P>`;
+                   
+         });
+
+    </script>
+</body>
+</html>

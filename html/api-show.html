@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/asset/tv.png">
+    <title>Buscador de Shows</title>
+    
+    <style>
+        html{
+            text-align: center;
+            background-image: url(/asset/fondo_tv.jpg);
+            color: aliceblue;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        .grid-fluid{
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(410px, 1fr));
+            
+        }
+        .loader{
+            display: block;
+            margin: auto;
+        }
+        .show{
+            margin: 20px;
+            width: 80%;
+            height: auto;
+            top: auto;
+        }
+        .text_Uno{
+            position: relative;
+            font-size: 13px;
+            bottom: 30%;
+            background-color: rgba(17, 17, 17, 0.62);
+            color: rgb(245, 241, 241);
+        }
+        input{
+            border: 2px solid rgb(57, 57, 57);
+            width: 30%;
+        }
+        input:hover{
+            background-color: rgb(54, 54, 54);
+            color: aliceblue;
+            transition: all .3s ease-in-out;
+        }
+        template{
+            align-items: center;
+        }
+        .img{
+            border: 4px solid rgb(255, 255, 255);
+            width: 100%;
+            height: auto;
+            align-items: top;
+        }
+        .a{
+            background-color: rgba(37, 37, 37, 0.627);
+            color: rgb(255, 255, 255);
+            font-size: 22px;
+            bottom: 30%;
+            position: relative;
+            text-decoration:none;
+            width: 100%;
+            height: 100%;
+        }
+        .a:hover{
+            color: rgb(130, 197, 255);
+        }
+        .text-card{
+            align-items: center;
+            color: rgb(201, 201, 201);
+            font-size: 32px;
+            top: 20%;
+            width: 101.5%;
+            background-color:  rgba(17, 17, 17, 0.62);
+            position: relative;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Buscador de shows</h1>
+    <div class="comprim">
+        <input type="search" id="search" placeholder="Buscar tu show..." autocomplete="off">
+    </div>
+    
+    
+    
+    <section id="shows-query" class="grid-fluid"></section>
+
+    <template id="show-template">
+        <article class="show"> 
+                <h3 class="text-card"></h3>
+                <img class="img" src="" alt="">
+                <div class="text_Uno"></div>
+                <a class="a" href=""></a>
+        </article>
+    </template>
+    <script>
+        const d = document, $show = d.getElementById("shows-query"), $template = d.getElementById("show-template").content, $fragment = d.createDocumentFragment();
+
+        d.addEventListener("keypress", async e => {
+            if (e.target.matches("#search")) {
+                //console.log(e.key,e.keyCode);
+                if (e.key === "Enter") {
+                    try {
+                        $show.innerHTML = `
+                            <img class="loader" src="../asset/puff.svg" alt="Cargando...">
+                        `;
+
+                        let query = e.target.value.toLowerCase(),
+                         api =`https://api.tvmaze.com/search/shows?q=${query}`,
+                         res = await fetch(api),
+                         json = await res.json();
+
+                        console.log(api,res,json);
+
+                        if(!res.ok)throw {status: res.status, statusText: res.statusText};
+
+                        if(json.length === 0){
+                            $show.innerHTML = `
+                            <h2>
+                                No se ha encontrado la búsqueda <mark>${query}</mark>
+                            </h2>`;
+                        }else{
+                            json.forEach(el => {
+                                $template.querySelector("h3").textContent = el.show.name;
+                                $template.querySelector("div").innerHTML = el.show.summary ? el.show.summary : "sin descripción";
+                                $template.querySelector("img").src = el.show.image ? el.show.image.medium : "https://static.tvmaze.com/images/no-img/no-img-portrait-text.png";
+                                $template.querySelector("img").alt = el.show.name;
+                                $template.querySelector("a").href = el.show.url ? el.show.url: "#";
+                                $template.querySelector("a").target = el.show.url ? "_black":"_self";
+                                $template.querySelector("a").textContent = el.show.url ? "Más información...":"";
+
+
+                                let $clone = d.importNode($template,true);
+                                $fragment.appendChild($clone);
+                            });
+
+                            $show.innerHTML = "";
+                            $show.appendChild($fragment);
+                        }
+
+                    } catch (err) {
+                        console.log(err);
+
+                        let mesage = err.statusText || "Programas no encontrados";
+
+                        $show.innerHTML = `<P>${err.status}: ${mesage}</P>`;
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
